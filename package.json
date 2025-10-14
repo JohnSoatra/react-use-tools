@@ -1,6 +1,6 @@
 {
   "name": "react-use-tools",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "MIT",
   "author": "John Soatra",
   "repository": {
@@ -11,8 +11,13 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w"
@@ -34,5 +39,15 @@
     "rollup-plugin-dts": "^6.2.3",
     "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "keywords": [
+    "react",
+    "react-hooks",
+    "custom-hooks",
+    "react-tools",
+    "react-utilities",
+    "use-tools",
+    "watch-hook",
+    "state-tracker"
+  ]
 }

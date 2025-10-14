@@ -2,12 +2,20 @@
 
 A small library to manage global reactive tools across your React application.
 
+## Version
+
+**2.0.0 – Breaking changes:**
+
+- `tools.notify()` removed.
+- `tools.watch()` now accepts `tracker` and `options` parameters.
+
 ## Features
 
 - Globally accessible `tools` object
 - Extendable `Tools` interface using TypeScript `declare global`
-- Register tools once in RootLayout or MainLayout
+- Register tools once in `RootLayout` or `MainLayout`
 - Reactive updates with `tools.watch()` hook
+- Optionally track specific properties with `tracker` and `callback`
 
 ## Installation
 
@@ -25,7 +33,8 @@ Create a `global.d.ts` file in your project:
 // global.d.ts
 declare global {
   interface Tools {
-    name: string;
+    username: string;
+    setUsername: (name: string) => void;
     navigate: (path: string) => void;
     increment?: () => void;
   }
@@ -40,11 +49,15 @@ Register tools in your root or main layout component:
 
 ```tsx
 // RootLayout.tsx
+import { useState } from 'react';
 import { registerTools } from 'react-use-tools';
 
 export default function RootLayout({ children }) {
+  const [username, setUsername] = useState('Current Name');
+
   registerTools({
-    name: 'Soatra',
+    username,
+    setUsername: (name: string) => setUsername(name),
     navigate(path) {
       console.log('Navigating to', path);
     },
@@ -66,7 +79,7 @@ Access `tools` in any component under the layout:
 export default function HomePage() {
   return (
     <div>
-      Name: {tools.name}
+      Username: {tools.username}
       <button onClick={() => tools.navigate('/about')}>
         Go to About
       </button>
@@ -75,20 +88,24 @@ export default function HomePage() {
 }
 ```
 
-### 4. Reactive Tools (Optional)
+### 4. Reactive Tools
 
-Call `tools.watch()` to re-render when tools update:
+Call `tools.watch()` to re-render the component when tools update. You can also track specific properties:
 
 ```tsx
 // CounterPage.tsx
 export default function CounterPage() {
-  tools.watch(); // Component re-renders on tools.notify()
+  // Re-render when username changes
+  tools.watch((t) => t.username, {
+    callback: (value) => console.log('Username changed:', value),
+    reRender: true, // default is true
+  });
 
   return (
     <div>
-      Counter: {tools.increment ? 'Available' : 'Not Available'}
-      <button onClick={() => tools.increment?.()}>
-        Increment
+      Current Username: {tools.username}
+      <button onClick={() => tools.setUsername('New Name')}>
+        Change Name
       </button>
     </div>
   );
@@ -103,35 +120,37 @@ Registers tools globally. Call once in your root layout.
 
 ```tsx
 registerTools({
-  // Your tool functions and values
+  username: 'John',
+  setUsername(name) {},
+  navigate(path) {},
 });
 ```
 
-### `tools.watch()`
+### `tools.watch(tracker?, options?)`
 
 Makes the component reactive. Call inside any functional component that needs to re-render when tools change.
 
-```tsx
-function MyComponent() {
-  tools.watch();
-  // Component re-renders on tools.notify()
-}
-```
-
-### `tools.notify()`
-
-Triggers re-render in all components using `tools.watch()`.
+- **tracker**: optional function to pick which tool property to watch. Defaults to all tools.
+- **options**: object with optional properties:
+  - `reRender` (boolean) – whether to re-render the component when the watched value changes. Defaults to `true`.
+  - `callback(value)` – called with the new value whenever the tracked property changes.
 
 ```tsx
-tools.notify(); // All watching components re-render
+tools.watch(
+  (t) => t.username, // track username only
+  {
+    reRender: true,
+    callback: (newName) => console.log('Username changed:', newName)
+  }
+);
 ```
 
 ## Notes
 
-- `tools` must be registered before usage in child components
-- Use `tools.watch()` only in components that need reactivity
-- Extend `Tools` interface in your project without modifying library code
-- TypeScript support included
+- `tools` must be registered before usage in child components.
+- Use `tools.watch()` only in components that need reactivity.
+- Extend `Tools` interface in your project without modifying library code.
+- TypeScript support included.
 
 ## License
 

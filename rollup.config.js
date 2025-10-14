@@ -41,7 +41,7 @@ export default [
       dts(),
       prependGlobalReference(),
       copy({
-        targets: [{ src: "src/global.d.ts", dest: "dist" }],
+        targets: [{ src: "src/types/global.d.ts", dest: "dist" }],
         hook: "writeBundle", // make sure it runs after build
       }),
     ],

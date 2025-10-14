@@ -1,41 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
-import { caller } from "./utils";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createWatch } from "./utils/watch";
 
-export default function useTools(props: Omit<Tools, 'notify' | 'watch'>): Tools {
-  const [callbacks, setCallbacks] = useState<Record<string, () => void>>({});
+export default function useTools(props: Tools): typeof tools {
+  const previousValue = useRef<Map<string, any>>(new Map());
+  const [watchers, setWatchers] = useState<Record<string, Watcher<any>>>({});
 
   useEffect(() => {
-    for (const key in callbacks) {
-      callbacks[key]();
-    }
-  }, [callbacks, props]);
+    for (const key in watchers) {
+      const watcher = watchers[key];
+      const newValue = watcher.tracker(props);
 
-  return useMemo(() => ({
-    ...props,
-    notify() {
-      for (const key in callbacks) {
-        callbacks[key]();
+      if (previousValue.current.get(key) !== newValue) {
+        previousValue.current.set(key, newValue);
+        watcher.callback(newValue);
       }
-    },
-    watch() {
-      const [_, setCounter] = useState(0);
-      const callerName = caller(1);
-
-      useEffect(() => {
-        setCallbacks((callbacks) => ({
-          ...callbacks,
-          [callerName]: () => {
-            setCounter(a => a + 1);
-          }
-        }));
-      }, []);
-
-      return () => {
-        setCallbacks(callbacks => {
-          const { [callerName]: _, ...rest } = callbacks;
-          return rest;
-        });
-      };
     }
-  }), [props, callbacks]);
+  }, [watchers, props]);
+
+  return useMemo(() => {
+    const cloneProps = Object.create(
+      Object.getPrototypeOf(props),
+      Object.getOwnPropertyDescriptors(props)
+    );
+
+    return Object.assign(cloneProps, {
+      watch: createWatch({
+        watchers,
+        setWatchers,
+        previousValue
+      })
+    });
+  }, [props]);
 }

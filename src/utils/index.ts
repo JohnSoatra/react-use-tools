@@ -1,6 +1,9 @@
-export function caller(level: number) {
-  const err = new Error();
-  const stack = err.stack?.split('\n') || [];
+export function generateId(current: string[]) {
+  let id: string;
 
-  return stack[2 + level]?.trim().split(/\s+/).slice(1).join('');
+  do {
+    id = crypto.randomUUID();
+  } while (current.includes(id));
+
+  return id;
 }

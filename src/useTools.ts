@@ -1,34 +1,29 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { createWatch } from "./utils/watch";
 
 export default function useTools(props: Tools): typeof tools {
-  const previousValue = useRef<Map<string, any>>(new Map());
-  const [watchers, setWatchers] = useState<Record<string, Watcher<any>>>({});
+  const watchers = useRef<Map<string, Watcher<any>>>(new Map());
+  const tracks = useRef<Map<string, any>>(new Map());
+  const watch = useMemo(() => createWatch({ watchers, tracks }), []);
 
   useEffect(() => {
-    for (const key in watchers) {
-      const watcher = watchers[key];
+    watchers.current.forEach((watcher, key) => {
       const newValue = watcher.tracker(props);
 
-      if (previousValue.current.get(key) !== newValue) {
-        previousValue.current.set(key, newValue);
+      if (tracks.current.get(key) !== newValue) {
+        tracks.current.set(key, newValue);
         watcher.callback(newValue);
       }
-    }
-  }, [watchers, props]);
+    });
+  }, [props]);
 
   return useMemo(() => {
     const cloneProps = Object.create(
       Object.getPrototypeOf(props),
       Object.getOwnPropertyDescriptors(props)
     );
+    cloneProps.watch = watch;
 
-    return Object.assign(cloneProps, {
-      watch: createWatch({
-        watchers,
-        setWatchers,
-        previousValue
-      })
-    });
+    return cloneProps;
   }, [props]);
 }

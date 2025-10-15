@@ -1,9 +1,10 @@
-export function generateId(current: string[]) {
+export function generateId(current:Iterable<string>) {
+  const existing = new Set(current);
   let id: string;
 
   do {
     id = crypto.randomUUID();
-  } while (current.includes(id));
+  } while (existing.has(id));
 
   return id;
 }

@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { generateId } from ".";
+import { uniqueId } from ".";
 
 export function createWatch(props: {
   watchers: RefObject<Map<string, Watcher<any>>>;
@@ -7,7 +7,7 @@ export function createWatch(props: {
 }): Watch {
   return (tracker, options) => {
     const [_counter, setCounter] = useState(0);
-    const id = useMemo(() => generateId(props.watchers.current.keys()), []);
+    const id = useMemo(() => uniqueId(props.watchers.current.keys()), []);
 
     useEffect(() => () => {
       props.tracks.current.delete(id);
